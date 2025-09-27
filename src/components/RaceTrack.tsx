@@ -8,12 +8,163 @@ interface RaceTrackProps {
 }
 
 export const RaceTrack: React.FC<RaceTrackProps> = ({ grid, userTeamName, lapTarget }) => {
-  const trackWidth = 700;
-  const trackHeight = 500;
-  const centerX = trackWidth / 2;
-  const centerY = trackHeight / 2;
-  const trackRadius = 180;
-  const innerRadius = 120;
+  const trackWidth = 800;
+  const trackHeight = 600;
+  
+  // Monza track path points (simplified version of the actual layout)
+  const getTrackPath = () => {
+    const points = [
+      // Start/finish straight
+      { x: 100, y: 300 },
+      { x: 200, y: 300 },
+      { x: 300, y: 300 },
+      { x: 400, y: 300 },
+      { x: 500, y: 300 },
+      
+      // First chicane (Rettifilo Tribune)
+      { x: 580, y: 300 },
+      { x: 620, y: 280 },
+      { x: 640, y: 260 },
+      { x: 650, y: 240 },
+      { x: 660, y: 220 },
+      
+      // Curva Grande
+      { x: 670, y: 200 },
+      { x: 680, y: 180 },
+      { x: 690, y: 160 },
+      { x: 700, y: 140 },
+      { x: 700, y: 120 },
+      { x: 690, y: 100 },
+      { x: 670, y: 90 },
+      { x: 650, y: 85 },
+      
+      // Back straight
+      { x: 600, y: 80 },
+      { x: 550, y: 80 },
+      { x: 500, y: 80 },
+      { x: 450, y: 80 },
+      { x: 400, y: 80 },
+      { x: 350, y: 80 },
+      { x: 300, y: 80 },
+      { x: 250, y: 80 },
+      { x: 200, y: 80 },
+      
+      // Seconda Variante (second chicane)
+      { x: 150, y: 80 },
+      { x: 120, y: 90 },
+      { x: 100, y: 110 },
+      { x: 90, y: 130 },
+      { x: 85, y: 150 },
+      
+      // Curva di Lesmo 1
+      { x: 80, y: 180 },
+      { x: 80, y: 200 },
+      { x: 85, y: 220 },
+      { x: 95, y: 240 },
+      { x: 110, y: 250 },
+      
+      // Curva di Lesmo 2
+      { x: 130, y: 260 },
+      { x: 150, y: 270 },
+      { x: 170, y: 275 },
+      { x: 190, y: 280 },
+      
+      // Serraglio
+      { x: 220, y: 285 },
+      { x: 250, y: 290 },
+      { x: 280, y: 295 },
+      
+      // Ascari chicane
+      { x: 320, y: 300 },
+      { x: 340, y: 310 },
+      { x: 360, y: 320 },
+      { x: 380, y: 315 },
+      { x: 400, y: 310 },
+      { x: 420, y: 305 },
+      
+      // Parabolica
+      { x: 450, y: 300 },
+      { x: 480, y: 295 },
+      { x: 510, y: 290 },
+      { x: 540, y: 285 },
+      { x: 570, y: 280 },
+      { x: 600, y: 275 },
+      { x: 630, y: 270 },
+      { x: 660, y: 275 },
+      { x: 680, y: 285 },
+      { x: 690, y: 300 },
+      { x: 690, y: 320 },
+      { x: 680, y: 340 },
+      { x: 660, y: 350 },
+      { x: 630, y: 355 },
+      { x: 600, y: 360 },
+      { x: 570, y: 365 },
+      { x: 540, y: 370 },
+      { x: 510, y: 375 },
+      { x: 480, y: 380 },
+      { x: 450, y: 385 },
+      { x: 420, y: 390 },
+      { x: 390, y: 395 },
+      { x: 360, y: 400 },
+      { x: 330, y: 405 },
+      { x: 300, y: 410 },
+      { x: 270, y: 415 },
+      { x: 240, y: 420 },
+      { x: 210, y: 425 },
+      { x: 180, y: 430 },
+      { x: 150, y: 435 },
+      { x: 120, y: 440 },
+      { x: 100, y: 430 },
+      { x: 90, y: 410 },
+      { x: 85, y: 390 },
+      { x: 80, y: 370 },
+      { x: 80, y: 350 },
+      { x: 85, y: 330 },
+      { x: 95, y: 310 },
+    ];
+    return points;
+  };
+
+  const trackPoints = getTrackPath();
+  const totalPoints = trackPoints.length;
+
+  // Function to get position along track based on progress (0-1)
+  const getPositionOnTrack = (progress: number, offset: number = 0) => {
+    const adjustedProgress = (progress + offset) % 1;
+    const pointIndex = adjustedProgress * (totalPoints - 1);
+    const lowerIndex = Math.floor(pointIndex);
+    const upperIndex = Math.ceil(pointIndex);
+    const t = pointIndex - lowerIndex;
+
+    if (lowerIndex === upperIndex) {
+      return trackPoints[lowerIndex];
+    }
+
+    const lowerPoint = trackPoints[lowerIndex];
+    const upperPoint = trackPoints[upperIndex];
+
+    return {
+      x: lowerPoint.x + (upperPoint.x - lowerPoint.x) * t,
+      y: lowerPoint.y + (upperPoint.y - lowerPoint.y) * t
+    };
+  };
+
+  // Function to get track direction at a point
+  const getTrackDirection = (progress: number) => {
+    const current = getPositionOnTrack(progress);
+    const next = getPositionOnTrack(progress + 0.01);
+    return Math.atan2(next.y - current.y, next.x - current.x);
+  };
+
+  // Create SVG path string for the track
+  const createTrackPath = () => {
+    let pathString = `M ${trackPoints[0].x} ${trackPoints[0].y}`;
+    for (let i = 1; i < trackPoints.length; i++) {
+      pathString += ` L ${trackPoints[i].x} ${trackPoints[i].y}`;
+    }
+    pathString += ' Z';
+    return pathString;
+  };
 
   return (
     <div className="relative">
@@ -23,79 +174,106 @@ export const RaceTrack: React.FC<RaceTrackProps> = ({ grid, userTeamName, lapTar
         className="bg-gradient-to-br from-green-100 to-green-200 rounded-2xl shadow-lg border-4 border-gray-300"
         style={{ filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.1))' }}
       >
-        {/* Track surface */}
         <defs>
-          <radialGradient id="trackGradient" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#374151" />
-            <stop offset="100%" stopColor="#1f2937" />
-          </radialGradient>
           <pattern id="trackPattern" patternUnits="userSpaceOnUse" width="20" height="20">
             <rect width="20" height="20" fill="#374151"/>
             <rect x="0" y="0" width="10" height="10" fill="#4b5563"/>
             <rect x="10" y="10" width="10" height="10" fill="#4b5563"/>
           </pattern>
+          <pattern id="grassPattern" patternUnits="userSpaceOnUse" width="30" height="30">
+            <rect width="30" height="30" fill="#10b981"/>
+            <rect x="0" y="0" width="15" height="15" fill="#059669"/>
+            <rect x="15" y="15" width="15" height="15" fill="#059669"/>
+          </pattern>
         </defs>
         
-        {/* Outer track */}
-        <circle 
-          cx={centerX} 
-          cy={centerY} 
-          r={trackRadius} 
-          fill="url(#trackPattern)" 
-          stroke="#6b7280" 
-          strokeWidth={4}
+        {/* Grass background */}
+        <rect width={trackWidth} height={trackHeight} fill="url(#grassPattern)" />
+        
+        {/* Track outer boundary */}
+        <path
+          d={createTrackPath()}
+          fill="none"
+          stroke="#6b7280"
+          strokeWidth={80}
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
         
-        {/* Inner track */}
-        <circle 
-          cx={centerX} 
-          cy={centerY} 
-          r={innerRadius} 
-          fill="#10b981" 
-          stroke="#059669" 
-          strokeWidth={3}
+        {/* Track surface */}
+        <path
+          d={createTrackPath()}
+          fill="none"
+          stroke="url(#trackPattern)"
+          strokeWidth={60}
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
         
-        {/* Track markings */}
-        {[0, Math.PI/2, Math.PI, 3*Math.PI/2].map((angle, i) => (
-          <g key={i}>
-            <line
-              x1={centerX + (innerRadius + 10) * Math.cos(angle)}
-              y1={centerY + (innerRadius + 10) * Math.sin(angle)}
-              x2={centerX + (trackRadius - 10) * Math.cos(angle)}
-              y2={centerY + (trackRadius - 10) * Math.sin(angle)}
-              stroke="#fbbf24"
-              strokeWidth={3}
-              strokeDasharray="10,5"
-            />
-          </g>
-        ))}
+        {/* Track center line */}
+        <path
+          d={createTrackPath()}
+          fill="none"
+          stroke="#fbbf24"
+          strokeWidth={2}
+          strokeDasharray="10,10"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
         
         {/* Start/finish line */}
         <line
-          x1={centerX + innerRadius}
-          y1={centerY}
-          x2={centerX + trackRadius}
-          y2={centerY}
+          x1={trackPoints[0].x - 20}
+          y1={trackPoints[0].y - 30}
+          x2={trackPoints[0].x - 20}
+          y2={trackPoints[0].y + 30}
           stroke="#ef4444"
-          strokeWidth={6}
+          strokeWidth={8}
         />
-        <text
-          x={centerX + trackRadius + 15}
-          y={centerY + 5}
-          fontSize="14"
-          fontWeight="bold"
-          fill="#ef4444"
-        >
-          START/FINISH
+        <line
+          x1={trackPoints[0].x - 25}
+          y1={trackPoints[0].y - 30}
+          x2={trackPoints[0].x - 25}
+          y2={trackPoints[0].y + 30}
+          stroke="#ffffff"
+          strokeWidth={4}
+        />
+        
+        {/* Track sections labels */}
+        <text x={500} y={320} fontSize="12" fontWeight="bold" fill="#374151" textAnchor="middle">
+          Main Straight
+        </text>
+        <text x={650} y={250} fontSize="10" fontWeight="bold" fill="#374151" textAnchor="middle">
+          Rettifilo Tribune
+        </text>
+        <text x={680} y={120} fontSize="10" fontWeight="bold" fill="#374151" textAnchor="middle">
+          Curva Grande
+        </text>
+        <text x={400} y={100} fontSize="12" fontWeight="bold" fill="#374151" textAnchor="middle">
+          Back Straight
+        </text>
+        <text x={100} y={200} fontSize="10" fontWeight="bold" fill="#374151" textAnchor="middle">
+          Lesmo
+        </text>
+        <text x={350} y={330} fontSize="10" fontWeight="bold" fill="#374151" textAnchor="middle">
+          Ascari
+        </text>
+        <text x={500} y={400} fontSize="10" fontWeight="bold" fill="#374151" textAnchor="middle">
+          Parabolica
         </text>
         
-        {/* Cars */}
+        {/* Cars following the track */}
         {grid.map((car, index) => {
-          const angle = car.angle || 0;
-          const radius = trackRadius - 30;
-          const x = centerX + radius * Math.cos(angle);
-          const y = centerY + radius * Math.sin(angle);
+          const lapProgress = car.laps || 0;
+          const angleProgress = (car.angle || 0) / (Math.PI * 2);
+          const totalProgress = (lapProgress + angleProgress) / lapTarget;
+          const currentProgress = angleProgress;
+          
+          // Add slight offset for each car to prevent overlap
+          const carOffset = (index * 0.02) % 1;
+          const position = getPositionOnTrack(currentProgress, carOffset);
+          const direction = getTrackDirection(currentProgress);
+          
           const isUserCar = car.team === userTeamName;
           const isTopThree = car.position <= 3;
           
@@ -103,33 +281,33 @@ export const RaceTrack: React.FC<RaceTrackProps> = ({ grid, userTeamName, lapTar
             <g key={car.id}>
               {/* Car shadow */}
               <ellipse
-                cx={x + 2}
-                cy={y + 2}
+                cx={position.x + 2}
+                cy={position.y + 2}
                 rx={isUserCar ? 12 : 8}
                 ry={isUserCar ? 8 : 6}
                 fill="rgba(0,0,0,0.3)"
+                transform={`rotate(${direction * 180 / Math.PI} ${position.x + 2} ${position.y + 2})`}
               />
               
               {/* Car body */}
               <ellipse
-                cx={x}
-                cy={y}
+                cx={position.x}
+                cy={position.y}
                 rx={isUserCar ? 12 : 8}
                 ry={isUserCar ? 8 : 6}
                 fill={car.color}
                 stroke={isTopThree ? "#fbbf24" : isUserCar ? "#ffffff" : "none"}
                 strokeWidth={isTopThree ? 3 : isUserCar ? 2 : 0}
+                transform={`rotate(${direction * 180 / Math.PI} ${position.x} ${position.y})`}
                 style={{
-                  filter: isUserCar ? 'drop-shadow(0 0 8px rgba(239, 68, 68, 0.6))' : 'none',
-                  transform: `rotate(${angle + Math.PI/2}rad)`,
-                  transformOrigin: `${x}px ${y}px`
+                  filter: isUserCar ? 'drop-shadow(0 0 8px rgba(239, 68, 68, 0.6))' : 'none'
                 }}
               />
               
               {/* Car number */}
               <text
-                x={x}
-                y={y + 4}
+                x={position.x}
+                y={position.y + 4}
                 fontSize={isUserCar ? "12" : "10"}
                 fontWeight="bold"
                 fill="#ffffff"
@@ -141,40 +319,40 @@ export const RaceTrack: React.FC<RaceTrackProps> = ({ grid, userTeamName, lapTar
               
               {/* Position indicator for top 3 */}
               {isTopThree && (
-                <circle
-                  cx={x - 15}
-                  cy={y - 15}
-                  r={8}
-                  fill={car.position === 1 ? "#ffd700" : car.position === 2 ? "#c0c0c0" : "#cd7f32"}
-                  stroke="#ffffff"
-                  strokeWidth={2}
-                />
-              )}
-              {isTopThree && (
-                <text
-                  x={x - 15}
-                  y={y - 11}
-                  fontSize="10"
-                  fontWeight="bold"
-                  fill="#000000"
-                  textAnchor="middle"
-                >
-                  {car.position}
-                </text>
+                <>
+                  <circle
+                    cx={position.x - 20}
+                    cy={position.y - 20}
+                    r={8}
+                    fill={car.position === 1 ? "#ffd700" : car.position === 2 ? "#c0c0c0" : "#cd7f32"}
+                    stroke="#ffffff"
+                    strokeWidth={2}
+                  />
+                  <text
+                    x={position.x - 20}
+                    y={position.y - 16}
+                    fontSize="10"
+                    fontWeight="bold"
+                    fill="#000000"
+                    textAnchor="middle"
+                  >
+                    {car.position}
+                  </text>
+                </>
               )}
               
               {/* Lap progress indicator */}
               <rect
-                x={x - 10}
-                y={y + 15}
+                x={position.x - 10}
+                y={position.y + 20}
                 width={20}
                 height={4}
                 fill="rgba(0,0,0,0.3)"
                 rx={2}
               />
               <rect
-                x={x - 10}
-                y={y + 15}
+                x={position.x - 10}
+                y={position.y + 20}
                 width={20 * (car.laps / lapTarget)}
                 height={4}
                 fill="#10b981"
@@ -185,10 +363,21 @@ export const RaceTrack: React.FC<RaceTrackProps> = ({ grid, userTeamName, lapTar
         })}
         
         {/* Track info */}
-        <rect x={10} y={10} width={200} height={80} fill="rgba(255,255,255,0.9)" rx={8} />
-        <text x={20} y={30} fontSize="14" fontWeight="bold" fill="#374151">Monaco Grand Prix</text>
-        <text x={20} y={50} fontSize="12" fill="#6b7280">Distance: {lapTarget} Laps</text>
-        <text x={20} y={70} fontSize="12" fill="#6b7280">Cars: {grid.length}</text>
+        <rect x={10} y={10} width={200} height={100} fill="rgba(255,255,255,0.95)" rx={8} stroke="#374151" strokeWidth={2} />
+        <text x={20} y={35} fontSize="16" fontWeight="bold" fill="#374151">Autodromo Nazionale Monza</text>
+        <text x={20} y={55} fontSize="12" fill="#6b7280">Distance: {lapTarget} Laps</text>
+        <text x={20} y={75} fontSize="12" fill="#6b7280">Cars: {grid.length}</text>
+        <text x={20} y={95} fontSize="12" fill="#6b7280">Length: 5.793 km</text>
+        
+        {/* Legend */}
+        <rect x={trackWidth - 150} y={10} width={140} height={80} fill="rgba(255,255,255,0.95)" rx={8} stroke="#374151" strokeWidth={2} />
+        <text x={trackWidth - 140} y={30} fontSize="12" fontWeight="bold" fill="#374151">Legend</text>
+        <line x1={trackWidth - 140} y1={40} x2={trackWidth - 120} y2={40} stroke="#ef4444" strokeWidth={4} />
+        <text x={trackWidth - 115} y={45} fontSize="10" fill="#6b7280">Start/Finish</text>
+        <line x1={trackWidth - 140} y1={55} x2={trackWidth - 120} y2={55} stroke="#fbbf24" strokeWidth={2} strokeDasharray="5,5" />
+        <text x={trackWidth - 115} y={60} fontSize="10" fill="#6b7280">Track Center</text>
+        <circle cx={trackWidth - 130} cy={75} r={6} fill="#ef4444" stroke="#ffffff" strokeWidth={2} />
+        <text x={trackWidth - 115} y={80} fontSize="10" fill="#6b7280">Your Car</text>
       </svg>
     </div>
   );
