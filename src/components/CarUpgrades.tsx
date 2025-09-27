@@ -21,7 +21,7 @@ export const CarUpgrades: React.FC<CarUpgradesProps> = ({ money, onPurchaseUpgra
 
   const upgrades: Upgrade[] = [
     {
-      id: 'turbo-engine',
+      id: 'Turbo-Engine',
       name: 'Turbo Engine Upgrade',
       description: 'Increases top speed and acceleration on straights',
       cost: 250000,
@@ -30,7 +30,7 @@ export const CarUpgrades: React.FC<CarUpgradesProps> = ({ money, onPurchaseUpgra
       benefit: '+5% Speed Boost'
     },
     {
-      id: 'aero-package',
+      id: 'Aero Package',
       name: 'Advanced Aerodynamics',
       description: 'Improved downforce and cornering performance',
       cost: 180000,
@@ -39,7 +39,7 @@ export const CarUpgrades: React.FC<CarUpgradesProps> = ({ money, onPurchaseUpgra
       benefit: '+3% Cornering'
     },
     {
-      id: 'safety-upgrade',
+      id: 'Safety-upgrade',
       name: 'Enhanced Safety Systems',
       description: 'Better crash protection and driver confidence',
       cost: 120000,
@@ -48,7 +48,7 @@ export const CarUpgrades: React.FC<CarUpgradesProps> = ({ money, onPurchaseUpgra
       benefit: '+2% Reliability'
     },
     {
-      id: 'electronics',
+      id: 'Electronics',
       name: 'Advanced Electronics',
       description: 'Improved telemetry and race strategy systems',
       cost: 200000,
@@ -57,7 +57,7 @@ export const CarUpgrades: React.FC<CarUpgradesProps> = ({ money, onPurchaseUpgra
       benefit: '+4% Strategy'
     },
     {
-      id: 'lightweight-materials',
+      id: 'Material Research',
       name: 'Carbon Fiber Body',
       description: 'Reduces weight for better performance',
       cost: 300000,
