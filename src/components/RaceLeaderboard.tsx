@@ -13,3 +13,5 @@ export const RaceTrack: React.FC<RaceTrackProps> = ({ grid, userTeamName, lapTar
   
   // Monza track path points (simplified version of the actual layout)
   const getTrackPath = () => {
+  }
+}
